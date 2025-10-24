@@ -1,6 +1,6 @@
 # ===============================================
 # 🏦 Smart Banking FAQ Chatbot (Premium Dark Edition)
-# Enhanced by AI ✨
+# Enhanced by AI ✨ | Cloud-Optimized Version
 # ===============================================
 
 import streamlit as st
@@ -12,17 +12,19 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # -------------------------------
-# 🧠 NLTK Setup (Safe Download)
+# 🧠 Safe NLTK Data Setup (Streamlit Cloud Friendly)
 # -------------------------------
+import ssl
 try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
 
-try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords')
+# Ensure NLTK resources are available
+nltk.download('punkt', quiet=True)
+nltk.download('stopwords', quiet=True)
 
 # -------------------------------
 # 📘 Banking FAQs (Enhanced Answers)
