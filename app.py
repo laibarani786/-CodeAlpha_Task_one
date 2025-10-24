@@ -6,23 +6,31 @@
 import streamlit as st
 import ssl
 import nltk
+import os
 import string
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Safe SSL + NLTK setup
+# -------------------------------
+# 🔒 Safe SSL + NLTK setup
+# -------------------------------
 try:
     _create_unverified_https_context = ssl._create_unverified_context
     ssl._create_default_https_context = _create_unverified_https_context
 except Exception:
     pass
 
-# Ensure punkt_tab and stopwords are downloaded
-for pkg in ["punkt", "punkt_tab", "stopwords"]:
+# ✅ Safe NLTK data path (for Streamlit Cloud)
+nltk_data_dir = os.path.join(os.getcwd(), "nltk_data")
+os.makedirs(nltk_data_dir, exist_ok=True)
+nltk.data.path.append(nltk_data_dir)
+
+# ✅ Ensure required nltk packages
+for pkg in ["punkt", "stopwords"]:
     try:
         nltk.data.find(f"tokenizers/{pkg}")
     except LookupError:
-        nltk.download(pkg, quiet=True)
+        nltk.download(pkg, download_dir=nltk_data_dir, quiet=True)
 
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
