@@ -5,38 +5,40 @@
 
 import streamlit as st
 import ssl
-import nltk
 import os
 import string
 import subprocess
 import sys
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
-# -------------------------------
-# 🔒 Ensure nltk installation (Cloud-safe)
-# -------------------------------
+# ✅ Ensure sklearn installed
+try:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+except ModuleNotFoundError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "scikit-learn"])
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+
+# ✅ Ensure nltk installed
 try:
     import nltk
 except ModuleNotFoundError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "nltk"])
     import nltk
 
-# -------------------------------
-# 🔒 Safe SSL + NLTK setup
-# -------------------------------
+# ✅ Setup SSL context (for safe download on Streamlit Cloud)
 try:
     _create_unverified_https_context = ssl._create_unverified_context
     ssl._create_default_https_context = _create_unverified_https_context
 except Exception:
     pass
 
-# ✅ Safe NLTK data path (for Streamlit Cloud)
+# ✅ Setup NLTK data path
 nltk_data_dir = os.path.join(os.getcwd(), "nltk_data")
 os.makedirs(nltk_data_dir, exist_ok=True)
 nltk.data.path.append(nltk_data_dir)
 
-# ✅ Ensure required nltk packages
+# ✅ Download required nltk data safely
 for pkg in ["punkt", "stopwords"]:
     try:
         nltk.data.find(f"tokenizers/{pkg}")
@@ -46,9 +48,9 @@ for pkg in ["punkt", "stopwords"]:
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
-# -------------------------------
+# ===============================================
 # 📘 Banking FAQs
-# -------------------------------
+# ===============================================
 faqs = {
     "How can I reset my online banking password?":
     "You can reset your password by visiting the login page and selecting ‘Forgot Password’. Follow the secure steps sent to your registered email or phone to create a new password safely.",
@@ -84,9 +86,9 @@ faqs = {
 faq_questions = list(faqs.keys())
 faq_answers = list(faqs.values())
 
-# -------------------------------
+# ===============================================
 # 🧹 Preprocessing
-# -------------------------------
+# ===============================================
 def preprocess(text):
     text = text.lower()
     tokens = word_tokenize(text)
@@ -95,9 +97,9 @@ def preprocess(text):
 
 processed_questions = [preprocess(q) for q in faq_questions]
 
-# -------------------------------
+# ===============================================
 # 🔢 TF-IDF + Cosine Similarity
-# -------------------------------
+# ===============================================
 vectorizer = TfidfVectorizer()
 faq_vectors = vectorizer.fit_transform(processed_questions)
 
@@ -114,13 +116,13 @@ def get_best_answer(user_query):
         answer = faq_answers[best_index]
         return f"💡 {answer} If you need more details, I’d be happy to help further."
 
-# -------------------------------
+# ===============================================
 # 💬 Streamlit UI
-# -------------------------------
+# ===============================================
 st.set_page_config(page_title="Banking FAQ Chatbot", page_icon="🏦", layout="wide")
 
 # 🌙 Dark Theme Styling
-page_bg = """
+st.markdown("""
 <style>
 [data-testid="stAppViewContainer"] {
     background-color: #0d1117;
@@ -158,15 +160,14 @@ input[type="text"] {
     border: 1px solid #30363d !important;
 }
 </style>
-"""
-st.markdown(page_bg, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# 🏦 Header
+# Header
 st.markdown("<h1 style='text-align:center;'>🏦 Smart Banking FAQ Chatbot</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center;'>💬 Ask me anything about our banking services, security, or policies</p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# Initialize Chat
+# Chat State
 if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = []
 
@@ -178,7 +179,7 @@ if user_input:
     st.session_state["chat_history"].append(("🧑‍💻 You", user_input))
     st.session_state["chat_history"].append(("🤖 Bot", response))
 
-# Display Conversation
+# Display Chat
 for role, message in st.session_state["chat_history"]:
     if role == "🧑‍💻 You":
         st.markdown(f"<div class='chat-bubble user-bubble'><b>{role}:</b> {message}</div>", unsafe_allow_html=True)
