@@ -1,63 +1,64 @@
 # ===============================================
 # 🏦 Smart Banking FAQ Chatbot (Premium Dark Edition)
-# Enhanced by AI ✨ | Cloud-Optimized Version
+# Enhanced by AI ✨ | Streamlit Cloud Compatible
 # ===============================================
 
 import streamlit as st
+import ssl
 import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
 import string
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# -------------------------------
-# 🧠 Safe NLTK Data Setup (Streamlit Cloud Friendly)
-# -------------------------------
-import ssl
+# Safe SSL + NLTK setup
 try:
     _create_unverified_https_context = ssl._create_unverified_context
-except AttributeError:
-    pass
-else:
     ssl._create_default_https_context = _create_unverified_https_context
+except Exception:
+    pass
 
-# Ensure NLTK resources are available
-nltk.download('punkt', quiet=True)
-nltk.download('stopwords', quiet=True)
+# Ensure punkt_tab and stopwords are downloaded
+for pkg in ["punkt", "punkt_tab", "stopwords"]:
+    try:
+        nltk.data.find(f"tokenizers/{pkg}")
+    except LookupError:
+        nltk.download(pkg, quiet=True)
+
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 
 # -------------------------------
-# 📘 Banking FAQs (Enhanced Answers)
+# 📘 Banking FAQs
 # -------------------------------
 faqs = {
-    "How can I reset my online banking password?": 
+    "How can I reset my online banking password?":
     "You can reset your password by visiting the login page and selecting ‘Forgot Password’. Follow the secure steps sent to your registered email or phone to create a new password safely.",
-    
-    "How can I check my account balance?": 
+
+    "How can I check my account balance?":
     "You can instantly check your account balance through our mobile app, online banking portal, or at any nearby ATM using your debit card.",
-    
-    "How do I block my lost debit or credit card?": 
+
+    "How do I block my lost debit or credit card?":
     "Please contact our 24/7 customer helpline immediately or log in to the mobile app to block your card. This helps prevent any unauthorized use or fraudulent activity on your account.",
-    
-    "What are the interest rates for savings accounts?": 
+
+    "What are the interest rates for savings accounts?":
     "Our savings account interest rates vary by tier and account type. Visit our official website or nearest branch to view the latest rates and offers.",
-    
-    "How can I apply for a personal loan?": 
+
+    "How can I apply for a personal loan?":
     "You can conveniently apply for a personal loan through our website or mobile app by submitting your details and required documents. Approval is quick and fully digital.",
-    
-    "How do I update my registered mobile number or email?": 
+
+    "How do I update my registered mobile number or email?":
     "Log in to your online banking account, go to ‘Profile Settings’, and update your registered contact details in a few easy steps.",
-    
-    "What is the process for international money transfer?": 
+
+    "What is the process for international money transfer?":
     "You can transfer money abroad via online banking or by visiting your nearest branch. Transfer fees and delivery times vary based on the country and currency.",
-    
-    "How do I set up automatic bill payments?": 
+
+    "How do I set up automatic bill payments?":
     "Go to ‘Bill Pay’ in your online banking portal and enable automatic payments for recurring bills like utilities, credit cards, or subscriptions.",
-    
-    "Can I open a fixed deposit online?": 
+
+    "Can I open a fixed deposit online?":
     "Yes! You can open a fixed deposit in just minutes through our mobile app or online banking dashboard — with flexible tenures and competitive interest rates.",
-    
-    "How do I contact customer support?": 
+
+    "How do I contact customer support?":
     "Our dedicated support team is available 24/7 via live chat, helpline, and email. Visit our official website for all contact details."
 }
 
