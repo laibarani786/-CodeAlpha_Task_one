@@ -1,94 +1,71 @@
 # ===============================================
 # 🏦 Smart Banking FAQ Chatbot (Premium Dark Edition)
-# Enhanced by AI ✨ | Streamlit Cloud Compatible
+# Fixed NLTK punkt_tab Error | Streamlit Cloud Ready
 # ===============================================
 
 import streamlit as st
 import ssl
 import os
 import string
-import subprocess
-import sys
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-# ✅ Ensure sklearn installed
-try:
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.metrics.pairwise import cosine_similarity
-except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "scikit-learn"])
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.metrics.pairwise import cosine_similarity
-
-# ✅ Ensure nltk installed
-try:
-    import nltk
-except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "nltk"])
-    import nltk
-
-# ✅ Setup SSL context (for safe download on Streamlit Cloud)
+# -------------------------------
+# ✅ Safe SSL + NLTK setup
+# -------------------------------
 try:
     _create_unverified_https_context = ssl._create_unverified_context
     ssl._create_default_https_context = _create_unverified_https_context
 except Exception:
     pass
 
-# ✅ Setup NLTK data path
+# ✅ Safe NLTK data path (for Streamlit Cloud)
 nltk_data_dir = os.path.join(os.getcwd(), "nltk_data")
 os.makedirs(nltk_data_dir, exist_ok=True)
 nltk.data.path.append(nltk_data_dir)
 
-# ✅ Download required nltk data safely
-for pkg in ["punkt", "stopwords"]:
+# ✅ Ensure required nltk packages (with punkt_tab fix)
+for pkg in ["punkt", "punkt_tab", "stopwords"]:
     try:
         nltk.data.find(f"tokenizers/{pkg}")
     except LookupError:
         nltk.download(pkg, download_dir=nltk_data_dir, quiet=True)
 
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-
-# ===============================================
+# -------------------------------
 # 📘 Banking FAQs
-# ===============================================
+# -------------------------------
 faqs = {
     "How can I reset my online banking password?":
-    "You can reset your password by visiting the login page and selecting ‘Forgot Password’. Follow the secure steps sent to your registered email or phone to create a new password safely.",
-
+        "You can reset your password by visiting the login page and selecting ‘Forgot Password’. Follow the secure steps sent to your registered email or phone to create a new password safely.",
     "How can I check my account balance?":
-    "You can instantly check your account balance through our mobile app, online banking portal, or at any nearby ATM using your debit card.",
-
+        "You can instantly check your account balance through our mobile app, online banking portal, or at any nearby ATM using your debit card.",
     "How do I block my lost debit or credit card?":
-    "Please contact our 24/7 customer helpline immediately or log in to the mobile app to block your card. This helps prevent any unauthorized use or fraudulent activity on your account.",
-
+        "Please contact our 24/7 customer helpline immediately or log in to the mobile app to block your card. This helps prevent any unauthorized use or fraudulent activity on your account.",
     "What are the interest rates for savings accounts?":
-    "Our savings account interest rates vary by tier and account type. Visit our official website or nearest branch to view the latest rates and offers.",
-
+        "Our savings account interest rates vary by tier and account type. Visit our official website or nearest branch to view the latest rates and offers.",
     "How can I apply for a personal loan?":
-    "You can conveniently apply for a personal loan through our website or mobile app by submitting your details and required documents. Approval is quick and fully digital.",
-
+        "You can conveniently apply for a personal loan through our website or mobile app by submitting your details and required documents. Approval is quick and fully digital.",
     "How do I update my registered mobile number or email?":
-    "Log in to your online banking account, go to ‘Profile Settings’, and update your registered contact details in a few easy steps.",
-
+        "Log in to your online banking account, go to ‘Profile Settings’, and update your registered contact details in a few easy steps.",
     "What is the process for international money transfer?":
-    "You can transfer money abroad via online banking or by visiting your nearest branch. Transfer fees and delivery times vary based on the country and currency.",
-
+        "You can transfer money abroad via online banking or by visiting your nearest branch. Transfer fees and delivery times vary based on the country and currency.",
     "How do I set up automatic bill payments?":
-    "Go to ‘Bill Pay’ in your online banking portal and enable automatic payments for recurring bills like utilities, credit cards, or subscriptions.",
-
+        "Go to ‘Bill Pay’ in your online banking portal and enable automatic payments for recurring bills like utilities, credit cards, or subscriptions.",
     "Can I open a fixed deposit online?":
-    "Yes! You can open a fixed deposit in just minutes through our mobile app or online banking dashboard — with flexible tenures and competitive interest rates.",
-
+        "Yes! You can open a fixed deposit in just minutes through our mobile app or online banking dashboard — with flexible tenures and competitive interest rates.",
     "How do I contact customer support?":
-    "Our dedicated support team is available 24/7 via live chat, helpline, and email. Visit our official website for all contact details."
+        "Our dedicated support team is available 24/7 via live chat, helpline, and email. Visit our official website for all contact details."
 }
 
 faq_questions = list(faqs.keys())
 faq_answers = list(faqs.values())
 
-# ===============================================
+# -------------------------------
 # 🧹 Preprocessing
-# ===============================================
+# -------------------------------
 def preprocess(text):
     text = text.lower()
     tokens = word_tokenize(text)
@@ -97,9 +74,9 @@ def preprocess(text):
 
 processed_questions = [preprocess(q) for q in faq_questions]
 
-# ===============================================
+# -------------------------------
 # 🔢 TF-IDF + Cosine Similarity
-# ===============================================
+# -------------------------------
 vectorizer = TfidfVectorizer()
 faq_vectors = vectorizer.fit_transform(processed_questions)
 
@@ -116,13 +93,13 @@ def get_best_answer(user_query):
         answer = faq_answers[best_index]
         return f"💡 {answer} If you need more details, I’d be happy to help further."
 
-# ===============================================
+# -------------------------------
 # 💬 Streamlit UI
-# ===============================================
+# -------------------------------
 st.set_page_config(page_title="Banking FAQ Chatbot", page_icon="🏦", layout="wide")
 
 # 🌙 Dark Theme Styling
-st.markdown("""
+page_bg = """
 <style>
 [data-testid="stAppViewContainer"] {
     background-color: #0d1117;
@@ -160,14 +137,15 @@ input[type="text"] {
     border: 1px solid #30363d !important;
 }
 </style>
-""", unsafe_allow_html=True)
+"""
+st.markdown(page_bg, unsafe_allow_html=True)
 
-# Header
+# 🏦 Header
 st.markdown("<h1 style='text-align:center;'>🏦 Smart Banking FAQ Chatbot</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center;'>💬 Ask me anything about our banking services, security, or policies</p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# Chat State
+# Initialize Chat
 if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = []
 
@@ -179,7 +157,7 @@ if user_input:
     st.session_state["chat_history"].append(("🧑‍💻 You", user_input))
     st.session_state["chat_history"].append(("🤖 Bot", response))
 
-# Display Chat
+# Display Conversation
 for role, message in st.session_state["chat_history"]:
     if role == "🧑‍💻 You":
         st.markdown(f"<div class='chat-bubble user-bubble'><b>{role}:</b> {message}</div>", unsafe_allow_html=True)
