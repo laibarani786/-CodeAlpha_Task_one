@@ -8,8 +8,19 @@ import ssl
 import nltk
 import os
 import string
+import subprocess
+import sys
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+
+# -------------------------------
+# 🔒 Ensure nltk installation (Cloud-safe)
+# -------------------------------
+try:
+    import nltk
+except ModuleNotFoundError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "nltk"])
+    import nltk
 
 # -------------------------------
 # 🔒 Safe SSL + NLTK setup
